@@ -10,6 +10,7 @@ class ShortUrlController extends Controller
 {
     public function index()
     {
+        // dd(2);
         $user = auth()->user();
 
         if ($user->role === 'super_admin') {

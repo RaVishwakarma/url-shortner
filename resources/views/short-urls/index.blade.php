@@ -39,29 +39,29 @@
 
 <h3>Your URLs</h3>
 
-<table border="1" cellpadding="8">
+@if(!empty($urls))
+    <table border="1" cellpadding="8">
 
-<tr>
-    <th>Original URL</th>
-    <th>Short URL</th>
-</tr>
+        <tr>
+            <th>Original URL</th>
+            <th>Short URL</th>
+        </tr>
 
-@foreach($urls as $url)
+        @foreach($urls as $url)
 
-<tr>
-    <td>{{ $url->original_url }}</td>
+        <tr>
+            <td>{{ $url->original_url }}</td>
 
-    <td>
-        <a href="/{{ $url->short_code }}">
-            {{ url($url->short_code) }}
-        </a>
-    </td>
+            <td>
+                <a href="/{{ $url->short_code }}">
+                    {{ url($url->short_code) }}
+                </a>
+            </td>
 
-</tr>
+        </tr>
 
-@endforeach
+        @endforeach
 
-</table>
-
+    </table>
 </body>
 </html>
