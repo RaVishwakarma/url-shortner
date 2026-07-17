@@ -24,7 +24,18 @@
                     Role: {{ auth()->user()->role }}
                 </p>
 
+                @if(session('success'))
+                    <p class="mt-4 text-green-600">{{ session('success') }}</p>
+                @endif
 
+                @if(session('invitation_url'))
+                    <p class="mt-2">
+                        Invitation link:
+                        <a class="text-blue-600 underline" href="{{ session('invitation_url') }}">
+                            {{ session('invitation_url') }}
+                        </a>
+                    </p>
+                @endif
 
                 @if(auth()->user()->role === 'super_admin')
 
@@ -36,7 +47,7 @@
                     </h4>
 
 
-                    <form method="POST" action="/invite" class="mt-4">
+                    <form method="POST" action="{{ route('invitations.store') }}" class="mt-4">
 
                         @csrf
 
@@ -89,21 +100,47 @@
 
                     </form>
 
+                @elseif(auth()->user()->role === 'admin')
+                    <hr class="my-5">
 
-                @else
+                    <h4 class="text-lg font-semibold">Invite a User</h4>
 
+                    <form method="POST" action="{{ route('invitations.store') }}" class="mt-4">
+                        @csrf
 
-                    <a 
-                        href="/short-urls"
-                        class="inline-block mt-5 bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                        Manage Short URLs
-                    </a>
+                        <div>
+                            <label for="email">Email</label>
+                            <input id="email" type="email" name="email" value="{{ old('email') }}" required>
+                        </div>
 
+                        <div class="mt-3">
+                            <label for="role">Role</label>
+                            <select id="role" name="role" required>
+                                <option value="admin">Admin</option>
+                                <option value="member">Member</option>
+                            </select>
+                        </div>
 
+                        <button class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">
+                            Send Invitation
+                        </button>
+                    </form>
                 @endif
 
+                @if($errors->any())
+                    <ul class="mt-4 text-red-600">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                @endif
 
+                <a
+                    href="{{ route('short-urls.index') }}"
+                    class="inline-block mt-5 bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                    {{ auth()->user()->role === 'super_admin' ? 'View All Short URLs' : 'Manage Short URLs' }}
+                </a>
             </div>
 
 

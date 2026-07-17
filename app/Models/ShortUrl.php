@@ -14,12 +14,10 @@ class ShortUrl extends Model
         'short_code',
     ];
 
-
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
-
 
     public function user(): BelongsTo
     {

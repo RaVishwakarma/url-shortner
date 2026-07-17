@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "ravi/url-shortener",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "A multi-company URL shortener built with Laravel.",
     "keywords": [
         "laravel",
         "framework"
@@ -10,22 +10,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
-        "laravel/chisel": "^0.1.0",
-        "laravel/fortify": "^1.37.2",
-        "laravel/framework": "^13.17",
-        "laravel/tinker": "^3.0",
-        "livewire/blaze": "^1.0",
-        "livewire/flux": "^2.13.1",
-        "livewire/livewire": "^4.1"
+        "laravel/framework": "^12.52"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
-        "larastan/larastan": "^3.9",
-        "laravel/breeze": "*",
-        "laravel/pail": "^1.2.5",
-        "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
-        "laravel/sail": "^1.53",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9.3",
         "pestphp/pest": "^4.7",
@@ -52,27 +41,19 @@
             "npm install",
             "npm run build"
         ],
-        "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php artisan dev"
-        ],
         "lint": [
-            "pint --parallel"
+            "pint"
         ],
         "lint:check": [
-            "pint --parallel --test"
+            "pint --test"
         ],
         "ci:check": [
             "Composer\\Config::disableProcessTimeout",
             "@test"
         ],
-        "types:check": [
-            "phpstan analyse"
-        ],
         "test": [
             "@php artisan config:clear --ansi",
             "@lint:check",
-            "@types:check",
             "@php artisan test"
         ],
         "post-autoload-dump": [

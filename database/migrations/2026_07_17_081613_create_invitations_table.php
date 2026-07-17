@@ -19,11 +19,11 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->string('email');
+            $table->string('email')->unique();
 
             $table->enum('role', [
                 'admin',
-                'member'
+                'member',
             ]);
 
             $table->string('token')

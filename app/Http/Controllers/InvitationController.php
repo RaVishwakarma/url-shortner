@@ -4,109 +4,102 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Invitation;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Redirect;
+use App\Notifications\InvitationCreated;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 
 class InvitationController extends Controller
 {
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'email' => 'required|email',
+        $user = $request->user();
+        abort_unless($user instanceof User, 401);
+
+        $validated = $request->validate([
+            'email' => 'required|email|max:255|unique:users,email',
             'role' => 'required|in:admin,member',
-            'company_name' => 'nullable|string'
+            'company_name' => $user->role === 'super_admin'
+                ? 'required|string|max:255'
+                : 'nullable|string|max:255',
         ]);
 
+        if ($user->role === 'super_admin' && $validated['role'] !== 'admin') {
+            abort(403, 'Super Admin can only invite an Admin.');
+        }
 
-        $user = auth()->user();
+        $invitation = DB::transaction(function () use ($user, $validated): Invitation {
+            $company = $user->role === 'super_admin'
+                ? Company::create(['name' => $validated['company_name']])
+                : Company::find($user->company_id);
 
+            abort_unless($company instanceof Company, 422, 'An Admin must belong to a company.');
 
-        /*
-         | SuperAdmin flow
-         | Create new company and invite Admin
-         */
+            Invitation::where('email', $validated['email'])->delete();
 
-        if ($user->role === 'super_admin') {
-
-            $company = Company::create([
-                'name' => $request->company_name
-            ]);
-
-
-            Invitation::create([
+            return Invitation::create([
                 'company_id' => $company->id,
-                'email' => $request->email,
-                'role' => 'admin',
+                'email' => $validated['email'],
+                'role' => $user->role === 'super_admin' ? 'admin' : $validated['role'],
                 'token' => Str::random(40),
+                'expires_at' => now()->addDays(7),
             ]);
+        });
 
+        Notification::route('mail', $invitation->email)
+            ->notify(new InvitationCreated($invitation));
 
-            return response()->json([
-                'message' => 'Admin invitation created'
-            ]);
-        }
-
-
-
-        /*
-         | Admin flow
-         | Invite inside own company
-         */
-
-        if ($user->role === 'admin') {
-
-
-            Invitation::create([
-                'company_id' => $user->company_id,
-                'email' => $request->email,
-                'role' => $request->role,
-                'token' => Str::random(40),
-            ]);
-
-
-            return response()->json([
-                'message' => 'Invitation created'
-            ]);
-        }
-        abort(403);
+        return back()
+            ->with('success', 'Invitation created successfully.')
+            ->with('invitation_url', URL::route('invitations.accept', $invitation->token));
     }
 
-    public function accept($token)
+    public function accept(string $token): View
     {
-        // dd($token);
-        $invitation = Invitation::where('token',$token)->firstOrFail();
-        // dd( $invitation);
+        $invitation = $this->validInvitation($token);
 
         return view('auth.accept-invite', compact('invitation'));
     }
 
-    public function register(Request $request, $token)
+    public function register(Request $request, string $token): RedirectResponse
     {
-        $invitation = Invitation::where('token',$token)->firstOrFail();
+        $invitation = $this->validInvitation($token);
 
-
-        $request->validate([
-            'name'=>'required',
-            'password'=>'required|min:6'
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
+        DB::transaction(function () use ($invitation, $validated): void {
+            User::create([
+                'name' => $validated['name'],
+                'email' => $invitation->email,
+                'password' => $validated['password'],
+                'company_id' => $invitation->company_id,
+                'role' => $invitation->role,
+            ]);
 
-        User::create([
-            'name'=>$request->name,
-            'email'=>$invitation->email,
-            'password'=>$request->password,
-            'company_id'=>$invitation->company_id,
-            'role'=>$invitation->role
-        ]);
+            $invitation->delete();
+        });
 
+        return to_route('login')
+            ->with('success', 'Account created. Please log in.');
+    }
 
-        $invitation->delete();
-
-
-        return redirect('/login')
-            ->with('success','Account created. Please login.');
+    private function validInvitation(string $token): Invitation
+    {
+        return Invitation::query()
+            ->where('token', $token)
+            ->where(function ($query): void {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->firstOrFail();
     }
 }
