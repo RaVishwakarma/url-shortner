@@ -38,4 +38,15 @@ Route::middleware(['auth'])->group(function () {
 
 Route::get('/{code}', [ShortUrlController::class, 'redirect']);
 
+Route::get('/accept-invite/{token}', 
+    [InvitationController::class,'accept']
+);
+
+
+Route::post('/accept-invite/{token}', 
+    [InvitationController::class,'register']
+);
+
+
+
 require __DIR__.'/auth.php';
