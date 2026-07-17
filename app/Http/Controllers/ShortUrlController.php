@@ -20,7 +20,7 @@ class ShortUrlController extends Controller
             $urls = ShortUrl::where('user_id', $user->id)->get();
         }
 
-        return response()->json($urls);
+        return view('short-urls.index', compact('urls'));
     }
 
     public function store(Request $request)
@@ -42,7 +42,7 @@ class ShortUrlController extends Controller
             'short_code'  => Str::random(6),
         ]);
 
-        return response()->json($shortUrl, 201);
+        return redirect('/short-urls')->with('success', 'Short URL created successfully.');
     }
 
     public function redirect($code)
