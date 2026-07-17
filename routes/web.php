@@ -6,7 +6,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\ShortUrlController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::get('/dashboard', function () {

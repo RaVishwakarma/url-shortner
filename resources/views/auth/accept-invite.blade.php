@@ -4,28 +4,17 @@
 
 @csrf
 
-<h2>Create Account</h2>
+<h2>Create Account</h2><br>
 
 <p>Email: {{ $invitation->email }}</p>
 
-<input 
-name="name"
-placeholder="Name"
-required
->
+<input name="name" placeholder="Name" required>
 
 
-<input 
-name="password"
-type="password"
-placeholder="Password"
-required
->
+<input name="password" type="password" placeholder="Password" required><br>
 
 
-<button>
-Create Account
-</button>
+<button class="btn btn-primary"> Create Account </button>
 
 </form>
 
