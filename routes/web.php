@@ -8,7 +8,7 @@ Route::get('/', function () {
     return view('auth.login');
 })->name('home');
 
-Route::view('/dashboard', 'dashboard')
+Route::get('/dashboard', [ShortUrlController::class, 'index'])
     ->middleware('auth')
     ->name('dashboard');
 
@@ -17,8 +17,6 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:super_admin,admin')
         ->name('invitations.store');
 
-    Route::get('/short-urls', [ShortUrlController::class, 'index'])
-        ->name('short-urls.index');
     Route::post('/short-urls', [ShortUrlController::class, 'store'])
         ->name('short-urls.store');
 });

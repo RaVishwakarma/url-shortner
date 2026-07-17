@@ -30,7 +30,7 @@ class ShortUrlController extends Controller
                 ->get();
         }
 
-        return view('short-urls.index', compact('urls'));
+        return view('dashboard', compact('urls'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -59,7 +59,7 @@ class ShortUrlController extends Controller
             'short_code' => $shortCode,
         ]);
 
-        return to_route('short-urls.index')->with('success', 'Short URL created successfully.');
+        return to_route('dashboard')->with('success', 'Short URL created successfully.');
     }
 
     public function redirect(string $code): RedirectResponse

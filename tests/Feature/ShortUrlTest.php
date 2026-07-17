@@ -9,7 +9,7 @@ test('an admin can create a short URL', function () {
 
     $this->actingAs($admin)
         ->post(route('short-urls.store'), ['original_url' => 'https://example.com/admin'])
-        ->assertRedirect(route('short-urls.index'));
+        ->assertRedirect(route('dashboard'));
 
     $this->assertDatabaseHas('short_urls', [
         'company_id' => $admin->company_id,
@@ -23,7 +23,7 @@ test('a member can create a short URL', function () {
 
     $this->actingAs($member)
         ->post(route('short-urls.store'), ['original_url' => 'https://example.com/member'])
-        ->assertRedirect(route('short-urls.index'));
+        ->assertRedirect(route('dashboard'));
 
     $this->assertDatabaseHas('short_urls', [
         'company_id' => $member->company_id,
@@ -48,7 +48,7 @@ test('a SuperAdmin sees short URLs from every company', function () {
     $secondUrl = createShortUrl($secondUser, 'secondcode');
 
     $this->actingAs(User::factory()->superAdmin()->create())
-        ->get(route('short-urls.index'))
+        ->get(route('dashboard'))
         ->assertOk()
         ->assertViewHas('urls', fn ($urls) => $urls->pluck('id')->sort()->values()->all()
             === collect([$firstUrl->id, $secondUrl->id])->sort()->values()->all());
@@ -63,7 +63,7 @@ test('an admin sees all URLs in their company but none from another company', fu
     $otherCompanyUrl = createShortUrl($otherUser, 'company2');
 
     $this->actingAs($admin)
-        ->get(route('short-urls.index'))
+        ->get(route('dashboard'))
         ->assertOk()
         ->assertViewHas('urls', fn ($urls) => $urls->contains($ownCompanyUrl)
             && ! $urls->contains($otherCompanyUrl));
@@ -77,10 +77,28 @@ test('a member sees only URLs they created', function () {
     $colleagueUrl = createShortUrl($colleague, 'member02');
 
     $this->actingAs($member)
-        ->get(route('short-urls.index'))
+        ->get(route('dashboard'))
         ->assertOk()
         ->assertViewHas('urls', fn ($urls) => $urls->contains($memberUrl)
             && ! $urls->contains($colleagueUrl));
+});
+
+test('the Admin and Member dashboard includes short URL creation', function () {
+    foreach ([User::factory()->admin()->create(), User::factory()->member()->create()] as $user) {
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Generate Short URL')
+            ->assertSee('name="original_url"', false);
+    }
+});
+
+test('the SuperAdmin dashboard does not include short URL creation', function () {
+    $this->actingAs(User::factory()->superAdmin()->create())
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('All Short URLs')
+        ->assertDontSee('name="original_url"', false);
 });
 
 test('a short URL is publicly resolvable and redirects to its original URL', function () {
