@@ -91,8 +91,8 @@
                                                 </a>
                                             </td>
                                             @if(auth()->user()->role !== 'member')
-                                                <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ $url->company->name }}</td>
-                                                <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ $url->user->name }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ $url->company_name }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ $url->user_name }}</td>
                                             @endif
                                         </tr>
                                     @endforeach

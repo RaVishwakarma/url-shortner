@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Invitation extends Model
 {
@@ -22,8 +21,25 @@ class Invitation extends Model
         ];
     }
 
-    public function company(): BelongsTo
+    public function getValidInvitation($token)
     {
-        return $this->belongsTo(Company::class);
+        $invitation = self::query()
+            ->join('companies', 'invitations.company_id', '=', 'companies.id')
+            ->select([
+                'invitations.*',
+                'companies.name as company_name',
+            ])
+            ->where('invitations.token', $token)
+            ->first();
+
+        if (empty($invitation)) {
+            return null;
+        }
+
+        if (! empty($invitation->expires_at) && $invitation->expires_at <= now()) {
+            return null;
+        }
+
+        return $invitation;
     }
 }

@@ -8,7 +8,7 @@
             </h2>
 
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                You were invited to join {{ $invitation->company->name }}
+                You were invited to join {{ $invitation->company_name }}
                 as {{ ucfirst($invitation->role) }}.
             </p>
 

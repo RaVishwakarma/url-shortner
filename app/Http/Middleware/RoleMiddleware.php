@@ -8,17 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    /**
-     * Handle an incoming request.
-     */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (! auth()->check()) {
-            abort(401);
+            return response('Unauthenticated.', 401);
         }
 
         if (! in_array(auth()->user()->role, $roles, true)) {
-            abort(403);
+            return response('Forbidden.', 403);
         }
 
         return $next($request);
